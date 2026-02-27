@@ -32,8 +32,8 @@ jobs:
 
       - name: Set up codesigning with Match
         run: |
-          # Clone the certificates repo
-          git clone https://github.com/skylineagle/chowder-certs.git certs
+          # Clone the certificates repo using GitHub token
+          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/skylineagle/chowder-certs.git certs
           cd certs
           # Decrypt if needed (match will handle this)
           cd ..
