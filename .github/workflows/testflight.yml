@@ -26,22 +26,30 @@ jobs:
           mkdir -p ~/.appstoreconnect
           echo "${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}" > ~/.appstoreconnect/auth_key.p8
 
-      - name: Run Match (Fetch certificates from private repo)
+      - name: Run Match (Fetch and sync certificates)
         run: |
           # Clone the certificates repo
-          git clone https://x-access-token:$GITHUB_TOKEN@github.com/skylineagle/chowder-certs.git certs
+          git clone https://x-access-token:$CI_GITHUB_TOKEN@github.com/skylineagle/chowder-certs.git certs
+          
+          # Run match to sync the certificates
+          fastlane match appstore --readonly true
         env:
-          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
+          CI_GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
 
-      - name: Build iOS App with code signing
+      - name: Build iOS App
         run: |
           xcodebuild -project Chowder/Chowder.xcodeproj \
             -scheme Chowder \
             -configuration Release \
             -destination 'generic/platform=iOS' \
-            build
-        env:
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+            build \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            CODE_SIGNING_REQUIRED=YES \
+            CODE_SIGNING_ALLOWED=YES \
+            -allowProvisioningUpdates
 
       - name: Upload to TestFlight
         run: |
