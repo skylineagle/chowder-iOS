@@ -1,0 +1,42 @@
+name: Build and Upload to TestFlight
+
+on:
+  push:
+    branches:
+      - main
+      - fix/gateway-handshake-and-stuck-cases
+  pull_request:
+
+jobs:
+  build-and-upload:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app
+
+      - name: Install Fastlane
+        run: gem install fastlane
+
+      - name: Create App Store Connect API Key file
+        run: |
+          mkdir -p ~/.appstoreconnect
+          echo '${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}' > ~/.appstoreconnect/auth_key.p8
+          echo '{"key_id":"${{ secrets.APP_STORE_CONNECT_KEY_ID }}","issuer_id":"${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}","key":"${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}","key_path":"auth_key.p8"}' > api_key.json
+
+      - name: Build iOS App (Debug Simulator)
+        run: |
+          xcodebuild -workspace Chowder/Chowder.xcworkspace -scheme Chowder -configuration Debug -destination 'generic/platform=iOS Simulator' build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+
+      - name: Build iOS App (Release for TestFlight)
+        run: |
+          xcodebuild -workspace Chowder/Chowder.xcworkspace -scheme Chowder -configuration Release -destination 'generic/platform=iOS' build
+
+      - name: Upload to TestFlight using altool
+        run: |
+          xcrun altool --upload-app -f build/Release-iphoneos/Chowder.ipa -t ios -u "${{ secrets.APP_STORE_CONNECT_KEY_ID }}" -p @keyfile:api_key.json --apiKey "${{ secrets.APP_STORE_CONNECT_KEY_ID }}" --apiIssuer "${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}"
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
