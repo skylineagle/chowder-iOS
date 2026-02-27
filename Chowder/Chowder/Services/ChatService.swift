@@ -342,7 +342,7 @@ final class ChatService: NSObject {
                     "id": "openclaw-ios",
                     "version": "1.0.0",
                     "platform": "ios",
-                    "mode": "operator"
+                    "mode": "ui"
                 ],
                 "role": "operator",
                 "scopes": ["operator.read", "operator.write", "operator.approvals", "operator.pairing"],
