@@ -33,7 +33,7 @@ jobs:
       - name: Set up codesigning with Match
         run: |
           # Clone the certificates repo
-          git clone https://github.com/skyclaw22/chowder-certs.git certs
+          git clone https://github.com/skylineagle/chowder-certs.git certs
           cd certs
           # Decrypt if needed (match will handle this)
           cd ..
