@@ -1,0 +1,7 @@
+git_url("https://github.com/skyclaw22/chowder-certs.git")
+app_identifier("com.sky.chowder")
+username("sky") # Will be overridden by CI
+
+# For CI, use environment variables:
+# MATCH_PASSWORD - passphrase for encryption
+# GIT_AUTHORIZATION - base64 encoded credentials if needed

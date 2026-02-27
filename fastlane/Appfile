@@ -1,5 +1,2 @@
 app_identifier("com.sky.chowder")
-apple_id("")
-
-# For fastlane match signing (optional - can be configured later)
-# match(type: "appstore")
+apple_id("skyclaw2610@")
