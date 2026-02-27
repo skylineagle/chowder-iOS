@@ -330,7 +330,7 @@ final class ChatService: NSObject {
         // Valid client IDs: webchat-ui, openclaw-control-ui, webchat, cli,
         //   gateway-client, openclaw-macos, openclaw-ios, openclaw-android, node-host, test
         // Valid client modes: webchat, cli, ui, backend, node, probe, test
-        // Device identity is required by the protocol - sign the nonce with device keypair
+        // Device identity is required by the protocol
         let frame: [String: Any] = [
             "type": "req",
             "id": requestId,
@@ -346,9 +346,6 @@ final class ChatService: NSObject {
                 ],
                 "role": "operator",
                 "scopes": ["operator.read", "operator.write", "operator.approvals", "operator.pairing"],
-                "caps": [],
-                "commands": [],
-                "permissions": {},
                 "auth": [
                     "token": token
                 ],
@@ -356,8 +353,8 @@ final class ChatService: NSObject {
                 "userAgent": "chowder-ios/1.0.0",
                 "device": [
                     "id": deviceId
-                ]
-            ]
+                ] as [String: String]
+            ] as [String: Any]
         ]
 
         guard let data = try? JSONSerialization.data(withJSONObject: frame),
@@ -855,6 +852,8 @@ final class ChatService: NSObject {
         webSocketTask = nil
         urlSession?.invalidateAndCancel()
         urlSession = nil
+        isConnected = false
+        hasSentConnectRequest = false  // Reset connection state for reconnect
 
         DispatchQueue.global().asyncAfter(deadline: .now() + 3) { [weak self] in
             self?.isReconnecting = false
