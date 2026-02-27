@@ -171,6 +171,8 @@ final class ChatService: NSObject {
         urlSession?.invalidateAndCancel()
         urlSession = nil
         isConnected = false
+        // Reset connection state for next connect attempt
+        hasSentConnectRequest = false
     }
 
     // MARK: - Sending Messages
@@ -328,7 +330,7 @@ final class ChatService: NSObject {
         // Valid client IDs: webchat-ui, openclaw-control-ui, webchat, cli,
         //   gateway-client, openclaw-macos, openclaw-ios, openclaw-android, node-host, test
         // Valid client modes: webchat, cli, ui, backend, node, probe, test
-        // Device identity is schema-optional; omit until we implement keypair signing.
+        // Device identity is required by the protocol
         let frame: [String: Any] = [
             "type": "req",
             "id": requestId,
@@ -343,13 +345,16 @@ final class ChatService: NSObject {
                     "mode": "ui"
                 ],
                 "role": "operator",
-                "scopes": ["operator.read", "operator.write"],
+                "scopes": ["operator.read", "operator.write", "operator.approvals", "operator.pairing"],
                 "auth": [
                     "token": token
                 ],
                 "locale": Locale.current.identifier,
-                "userAgent": "chowder-ios/1.0.0"
-            ]
+                "userAgent": "chowder-ios/1.0.0",
+                "device": [
+                    "id": deviceId
+                ] as [String: String]
+            ] as [String: Any]
         ]
 
         guard let data = try? JSONSerialization.data(withJSONObject: frame),
@@ -847,6 +852,8 @@ final class ChatService: NSObject {
         webSocketTask = nil
         urlSession?.invalidateAndCancel()
         urlSession = nil
+        isConnected = false
+        hasSentConnectRequest = false  // Reset connection state for reconnect
 
         DispatchQueue.global().asyncAfter(deadline: .now() + 3) { [weak self] in
             self?.isReconnecting = false
