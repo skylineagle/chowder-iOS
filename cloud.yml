@@ -1,0 +1,39 @@
+schema: 1
+version: 1
+
+env:
+  app-store-connect-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+  app-store-connect-issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+  app-store-connect-private-key: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+
+workflows:
+  Build and Test:
+    name: Build and Test
+    on:
+      - pull_request
+    actions:
+      - action: xcode-build
+        title: Build iOS App
+        inputs:
+          scheme: Chowder
+          configuration: Debug
+          destination: generic/platform=iOS Simulator
+
+  Build and Distribute:
+    name: Build and Distribute to TestFlight
+    on:
+      - push
+        branches:
+          - main
+          - fix/gateway-handshake-and-stuck-cases
+    actions:
+      - action: xcode-build
+        title: Build for TestFlight
+        inputs:
+          scheme: Chowder
+          configuration: Release
+          destination: generic/platform=iOS
+      - action: app-store-connect-distribute
+        title: Upload to TestFlight
+        inputs:
+          distribute-to-external-testers: false
